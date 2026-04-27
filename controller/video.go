@@ -3,6 +3,8 @@ package controller
 import (
 	"os"
 	"path/filepath"
+	"dubmaster/singleton"
+
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -15,6 +17,13 @@ func SendVideo(c fiber.Ctx) error {
 	uploadType := c.FormValue("uploadType")
 
 	switch uploadType {
+	case "YOUTUBE":
+		url := c.FormValue("url")
+		// Por ora apenas estrutura - o pipeline será integrado depois
+		_, _ = singleton.Downloader.Download(url)
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"videoUrl": "http://localhost:4000/api/videos/" + id + ".mp4",
+		})
 	case "FILE":
 		fileHeader, err := c.FormFile("file")
 		if err != nil {
