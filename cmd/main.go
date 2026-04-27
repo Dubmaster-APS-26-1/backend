@@ -25,10 +25,12 @@ func main() {
 	app.Use(cors.New())
 
 	app.Get("/api/auth/callback", auth.Callback)
+	app.Get("/api/videos/:filename", controller.GetVideo)
 
 	privateRoute := app.Group("/api", middleware.Authentication)
 
 	privateRoute.Get("/me", controller.Me, middleware.DefaultAuthorization)
+	privateRoute.Post("/videos", controller.SendVideo, middleware.DefaultAuthorization)
 
 	log.Fatal(app.Listen(":4000"))
 }
