@@ -7,5 +7,5 @@ import (
 
 var (
 	UserService = &user.UserService{}
-	Downloader  = &input.YouTube{}
+	Downloader  input.Downloader = &input.YouTube{}
 )
