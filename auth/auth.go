@@ -40,6 +40,6 @@ func Callback(c fiber.Ctx) error {
 	}
 
 	c.Response().Header.Add("Location", fmt.Sprintf("%s?access_token=%s", config.FrontendRedirectUrl, tokenResponse.AccessToken))
-	c.Status(301)
+	c.Status(302)
 	return nil
 }

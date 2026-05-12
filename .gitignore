@@ -1,6 +1,9 @@
 .env
 *.mp4
+*.wav
 videos/
 pipe/
 .venv/
 tmp/
+dubmaster-api
+main

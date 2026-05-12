@@ -15,6 +15,6 @@ func Me(c fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(
-		fiber.Map{"name": user.Name},
+		fiber.Map{"name": user.Name, "email": user.Email},
 	)
 }
