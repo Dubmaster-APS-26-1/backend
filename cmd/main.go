@@ -2,11 +2,14 @@ package main
 
 import (
 	"log"
+
 	"dubmaster/auth"
 	"dubmaster/config"
 	"dubmaster/controller"
 	"dubmaster/database"
 	"dubmaster/middleware"
+	"dubmaster/pipeline"
+	"dubmaster/singleton"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -20,17 +23,30 @@ func main() {
 		log.Fatal(err)
 	}
 
+	singleton.Queue = pipeline.NewQueue(
+		singleton.VideoService,
+		singleton.MediaHandler,
+		singleton.Transcripter,
+		singleton.Translator,
+	)
+	singleton.Queue.Start(3)
+
 	app := fiber.New()
 
 	app.Use(cors.New())
 
 	app.Get("/api/auth/callback", auth.Callback)
-	app.Get("/api/videos/:filename", controller.GetVideo)
 
 	privateRoute := app.Group("/api", middleware.Authentication)
 
 	privateRoute.Get("/me", controller.Me, middleware.DefaultAuthorization)
 	privateRoute.Post("/videos", controller.SendVideo, middleware.DefaultAuthorization)
+	privateRoute.Get("/videos", controller.ListVideos, middleware.DefaultAuthorization)
+	privateRoute.Get("/videos/:id", controller.GetVideoById, middleware.DefaultAuthorization)
+	privateRoute.Get("/videos/:id/file", controller.GetVideoFile, middleware.DefaultAuthorization)
+	privateRoute.Get("/videos/:id/transcription", controller.GetTranscription, middleware.DefaultAuthorization)
+	privateRoute.Put("/videos/:id/transcription", controller.UpdateTranscription, middleware.DefaultAuthorization)
+	privateRoute.Post("/videos/:id/translate", controller.TranslateVideo, middleware.DefaultAuthorization)
 
 	log.Fatal(app.Listen(":4000"))
 }
