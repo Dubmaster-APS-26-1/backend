@@ -44,6 +44,7 @@ func main() {
 	privateRoute.Get("/videos", controller.ListVideos, middleware.DefaultAuthorization)
 	privateRoute.Get("/videos/:id", controller.GetVideoById, middleware.DefaultAuthorization)
 	privateRoute.Get("/videos/:id/file", controller.GetVideoFile, middleware.DefaultAuthorization)
+	privateRoute.Get("/videos/:id/dubbed", controller.GetDubbedVideoFile, middleware.DefaultAuthorization)
 	privateRoute.Get("/videos/:id/transcription", controller.GetTranscription, middleware.DefaultAuthorization)
 	privateRoute.Put("/videos/:id/transcription", controller.UpdateTranscription, middleware.DefaultAuthorization)
 	privateRoute.Post("/videos/:id/translate", controller.TranslateVideo, middleware.DefaultAuthorization)

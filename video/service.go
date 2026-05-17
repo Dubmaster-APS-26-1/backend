@@ -13,11 +13,12 @@ type VideoService struct{}
 
 var (
 	createVideoSql                   = `INSERT INTO "video" (id, user_sso_id, title, original_path, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	getVideoByIdSql                  = `SELECT id, user_sso_id, title, original_path, status, COALESCE(transcription, ''), COALESCE(translated_transcription, ''), created_at, updated_at FROM "video" WHERE id = $1`
-	getVideosByUserSql               = `SELECT id, user_sso_id, title, original_path, status, COALESCE(transcription, ''), COALESCE(translated_transcription, ''), created_at, updated_at FROM "video" WHERE user_sso_id = $1 ORDER BY created_at DESC`
+	getVideoByIdSql                  = `SELECT id, user_sso_id, title, original_path, COALESCE(dubbed_path, ''), status, COALESCE(transcription, ''), COALESCE(translated_transcription, ''), created_at, updated_at FROM "video" WHERE id = $1`
+	getVideosByUserSql               = `SELECT id, user_sso_id, title, original_path, COALESCE(dubbed_path, ''), status, COALESCE(transcription, ''), COALESCE(translated_transcription, ''), created_at, updated_at FROM "video" WHERE user_sso_id = $1 ORDER BY created_at DESC`
 	updateStatusSql                  = `UPDATE "video" SET status = $1, updated_at = $2 WHERE id = $3`
 	updateTranscriptionSql           = `UPDATE "video" SET transcription = $1, status = $2, updated_at = $3 WHERE id = $4`
 	updateTranslatedTranscriptionSql = `UPDATE "video" SET translated_transcription = $1, status = $2, updated_at = $3 WHERE id = $4`
+	updateDubbedPathSql              = `UPDATE "video" SET dubbed_path = $1, status = $2, updated_at = $3 WHERE id = $4`
 )
 
 func (vs *VideoService) Create(title, originalPath, userSsoId string) (*Video, error) {
@@ -44,7 +45,7 @@ func (vs *VideoService) Create(title, originalPath, userSsoId string) (*Video, e
 func (vs *VideoService) GetByID(id string) (*Video, error) {
 	var v Video
 	err := database.Pool.QueryRow(context.Background(), getVideoByIdSql, id).Scan(
-		&v.ID, &v.UserSsoId, &v.Title, &v.OriginalPath, &v.Status,
+		&v.ID, &v.UserSsoId, &v.Title, &v.OriginalPath, &v.DubbedPath, &v.Status,
 		&v.Transcription, &v.TranslatedTranscription,
 		&v.CreatedAt, &v.UpdatedAt,
 	)
@@ -65,7 +66,7 @@ func (vs *VideoService) GetByUser(userSsoId string) ([]*Video, error) {
 	for rows.Next() {
 		var v Video
 		err := rows.Scan(
-			&v.ID, &v.UserSsoId, &v.Title, &v.OriginalPath, &v.Status,
+			&v.ID, &v.UserSsoId, &v.Title, &v.OriginalPath, &v.DubbedPath, &v.Status,
 			&v.Transcription, &v.TranslatedTranscription,
 			&v.CreatedAt, &v.UpdatedAt,
 		)
@@ -89,5 +90,10 @@ func (vs *VideoService) UpdateTranscription(id, transcription string) error {
 
 func (vs *VideoService) UpdateTranslatedTranscription(id, translated string) error {
 	_, err := database.Pool.Exec(context.Background(), updateTranslatedTranscriptionSql, translated, "translated", time.Now(), id)
+	return err
+}
+
+func (vs *VideoService) UpdateDubbedPath(id, dubbedPath string) error {
+	_, err := database.Pool.Exec(context.Background(), updateDubbedPathSql, dubbedPath, "dubbed", time.Now(), id)
 	return err
 }

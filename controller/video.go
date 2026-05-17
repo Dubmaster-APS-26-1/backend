@@ -151,3 +151,23 @@ func GetVideoFile(c fiber.Ctx) error {
 	c.Set("Accept-Ranges", "bytes")
 	return c.SendFile(v.OriginalPath)
 }
+
+func GetDubbedVideoFile(c fiber.Ctx) error {
+	id := c.Params("id")
+	v, err := singleton.VideoService.GetByID(id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "video not found"})
+	}
+
+	if v.DubbedPath == "" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "dubbed video not available"})
+	}
+
+	if _, err := os.Stat(v.DubbedPath); os.IsNotExist(err) {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "dubbed video file not found"})
+	}
+
+	c.Set("Content-Type", "video/mp4")
+	c.Set("Accept-Ranges", "bytes")
+	return c.SendFile(v.DubbedPath)
+}

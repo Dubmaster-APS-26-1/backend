@@ -7,6 +7,7 @@ type Video struct {
 	UserSsoId               string    `json:"userSsoId"`
 	Title                   string    `json:"title"`
 	OriginalPath            string    `json:"-"`
+	DubbedPath              string    `json:"hasDubbed,omitempty"`
 	Status                  string    `json:"status"`
 	Transcription           string    `json:"transcription,omitempty"`
 	TranslatedTranscription string    `json:"translatedTranscription,omitempty"`

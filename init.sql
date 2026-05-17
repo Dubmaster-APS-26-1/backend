@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE,
   name VARCHAR(100),
-  sso_id VARCHAR(50)
+  sso_id VARCHAR(50) UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS "video" (
@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS "video" (
   user_sso_id VARCHAR(50) REFERENCES "user"(sso_id),
   title VARCHAR(255),
   original_path VARCHAR(500),
+  dubbed_path VARCHAR(500),
   status VARCHAR(50) DEFAULT 'uploaded',
   transcription TEXT,
   translated_transcription TEXT,
