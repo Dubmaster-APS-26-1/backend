@@ -30,7 +30,7 @@ func (h *Hub) Register(userSsoID string) *Client {
 	h.mu.Lock()
 	h.clients[c] = true
 	h.mu.Unlock()
-	slog.Info("[SSE] Client registered", "user", userSsoID, "total_clients", len(h.clients))
+	slog.Debug("[SSE] Client registered", "user", userSsoID, "total_clients", len(h.clients))
 	return c
 }
 
@@ -39,7 +39,7 @@ func (h *Hub) Unregister(c *Client) {
 	delete(h.clients, c)
 	h.mu.Unlock()
 	close(c.Ch)
-	slog.Info("[SSE] Client unregistered", "user", c.UserSsoID, "total_clients", len(h.clients))
+	slog.Debug("[SSE] Client unregistered", "user", c.UserSsoID, "total_clients", len(h.clients))
 }
 
 func (h *Hub) Broadcast(videoID, status string) {
@@ -50,7 +50,6 @@ func (h *Hub) Broadcast(videoID, status string) {
 		select {
 		case c.Ch <- msg:
 		default:
-			slog.Warn("[SSE] Client channel full, dropping message", "user", c.UserSsoID)
 		}
 	}
 }

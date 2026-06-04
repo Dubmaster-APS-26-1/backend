@@ -68,7 +68,7 @@ func GetUserInfoByAccessToken(accessToken string) (map[string]any, error) {
 		return nil, errors.New("user not found by accessToken")
 	}
 
-	slog.Info("Authentication completed",
+	slog.Debug("Authentication completed",
 		"username", userInfo["name"],
 		"email", userInfo["email"],
 		"sso_id", userInfo["id"])
