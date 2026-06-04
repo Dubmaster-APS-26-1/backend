@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"dubmaster/config"
@@ -53,7 +54,34 @@ func (g *GroqWhisper) Transcript(fPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return result.Text, nil
+	if len(result.Segments) == 0 {
+		return result.Text, nil
+	}
+	return buildSRTFromSegments(result.Segments), nil
+}
+
+func buildSRTFromSegments(segments []Segment) string {
+	var sb strings.Builder
+	for i, seg := range segments {
+		if i > 0 {
+			sb.WriteString("\n\n")
+		}
+		sb.WriteString(fmt.Sprintf("%d\n%s --> %s\n%s",
+			i+1,
+			formatSRTTime(seg.Start),
+			formatSRTTime(seg.End),
+			strings.TrimSpace(seg.Text),
+		))
+	}
+	return sb.String()
+}
+
+func formatSRTTime(seconds float64) string {
+	h := int(seconds) / 3600
+	m := (int(seconds) % 3600) / 60
+	s := int(seconds) % 60
+	ms := int((seconds - float64(int(seconds))) * 1000)
+	return fmt.Sprintf("%02d:%02d:%02d,%03d", h, m, s, ms)
 }
 
 func (g *GroqWhisper) TranscriptDetailed(fPath string) (*TranscriptResult, error) {
