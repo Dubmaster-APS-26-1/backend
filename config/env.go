@@ -15,6 +15,7 @@ var (
 	UserInfoUrl         string
 	FrontendRedirectUrl string
 	DatabaseUrl         string
+	GroqApiKey          string
 )
 
 func LoadEnvironment() {
@@ -30,6 +31,7 @@ func LoadEnvironment() {
 	UserInfoUrl = os.Getenv("USER_INFO_URL")
 	FrontendRedirectUrl = os.Getenv("FRONTEND_REDIRECT_URL")
 	DatabaseUrl = os.Getenv("DATABASE_URL")
+	GroqApiKey = os.Getenv("GROQ_API_KEY")
 
 	if ClientId == "" {
 		log.Fatal("ClientId is empty")

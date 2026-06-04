@@ -27,6 +27,7 @@ func SendVideo(c fiber.Ctx) error {
 	uploadType := c.FormValue("uploadType")
 
 	var originalPath string
+	var sourceUrl string
 
 	switch uploadType {
 	case "YOUTUBE":
@@ -34,6 +35,7 @@ func SendVideo(c fiber.Ctx) error {
 		if url == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "url is required"})
 		}
+		sourceUrl = url
 		downloadedPath := singleton.Downloader.Download(url)
 		originalPath = downloadedPath
 	case "FILE":
@@ -47,7 +49,7 @@ func SendVideo(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid uploadType"})
 	}
 
-	v, err := singleton.VideoService.Create(title, originalPath, ssoId)
+	v, err := singleton.VideoService.Create(title, uploadType, sourceUrl, originalPath, ssoId)
 	if err != nil {
 		slog.Error("[VIDEO] Error creating video record", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -66,9 +68,14 @@ func SendVideo(c fiber.Ctx) error {
 
 func GetVideoById(c fiber.Ctx) error {
 	id := c.Params("id")
+	ssoId := c.Locals("user.sso_id").(string)
+
 	v, err := singleton.VideoService.GetByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "video not found"})
+	}
+	if v.UserSsoId != ssoId {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
 	}
 	return c.Status(fiber.StatusOK).JSON(v)
 }
@@ -133,6 +140,30 @@ func TranslateVideo(c fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"id":     id,
 		"status": "translating",
+	})
+}
+
+func DubVideo(c fiber.Ctx) error {
+	id := c.Params("id")
+	ssoId := c.Locals("user.sso_id").(string)
+
+	v, err := singleton.VideoService.GetByID(id)
+	if err != nil || v.UserSsoId != ssoId {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "video not found"})
+	}
+
+	if v.TranslatedTranscription == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "video has no translation"})
+	}
+
+	singleton.Queue.Enqueue(pipeline.Job{
+		VideoID: id,
+		Type:    pipeline.JobDub,
+	})
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"id":     id,
+		"status": "generating_voice",
 	})
 }
 

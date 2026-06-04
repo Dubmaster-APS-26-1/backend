@@ -88,3 +88,11 @@ func (w *Whisper) Transcript(audioPath string) (string, error) {
 	slog.Info("[TRANSCRIPT] Successfully transcribed audio")
 	return string(content), nil
 }
+
+func (w *Whisper) TranscriptDetailed(audioPath string) (*TranscriptResult, error) {
+	text, err := w.Transcript(audioPath)
+	if err != nil {
+		return nil, err
+	}
+	return &TranscriptResult{Text: text}, nil
+}

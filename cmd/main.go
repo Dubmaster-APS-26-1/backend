@@ -10,6 +10,7 @@ import (
 	"dubmaster/middleware"
 	"dubmaster/pipeline"
 	"dubmaster/singleton"
+	"dubmaster/ws"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -28,6 +29,9 @@ func main() {
 		singleton.MediaHandler,
 		singleton.Transcripter,
 		singleton.Translator,
+		singleton.TTS,
+		singleton.Subtitler,
+		singleton.Hub,
 	)
 	singleton.Queue.Start(3)
 
@@ -36,6 +40,16 @@ func main() {
 	app.Use(cors.New())
 
 	app.Get("/api/auth/callback", auth.Callback)
+
+	sseHandler := ws.NewSSEHandler(singleton.Hub, func(token string) (string, error) {
+		userInfo, err := auth.GetUserInfoByAccessToken(token)
+		if err != nil {
+			return "", err
+		}
+		ssoID, _ := userInfo["id"].(string)
+		return ssoID, nil
+	})
+	app.Get("/api/events", sseHandler)
 
 	privateRoute := app.Group("/api", middleware.Authentication)
 
@@ -48,6 +62,7 @@ func main() {
 	privateRoute.Get("/videos/:id/transcription", controller.GetTranscription, middleware.DefaultAuthorization)
 	privateRoute.Put("/videos/:id/transcription", controller.UpdateTranscription, middleware.DefaultAuthorization)
 	privateRoute.Post("/videos/:id/translate", controller.TranslateVideo, middleware.DefaultAuthorization)
+	privateRoute.Post("/videos/:id/dub", controller.DubVideo, middleware.DefaultAuthorization)
 
 	log.Fatal(app.Listen(":4000"))
 }
