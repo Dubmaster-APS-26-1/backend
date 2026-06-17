@@ -309,6 +309,11 @@ func (q *Queue) generateSegmentedSpeech(text, speakerWavPath, outputDir string) 
 	plainText := q.extractPlainTextFromSRT(text)
 
 	segments := splitTextIntoSegments(plainText)
+	slog.Info("[QUEUE] TTS segments prepared", "segment_count", len(segments), "total_chars", len(plainText))
+	for i, seg := range segments {
+		slog.Info("[QUEUE] TTS segment", "index", i, "chars", len(seg), "preview", truncateString(seg, 80))
+	}
+
 	if len(segments) <= 1 {
 		return q.speaker.Speech(plainText, speakerWavPath)
 	}
@@ -351,6 +356,8 @@ func splitTextIntoSegments(text string) []string {
 	sentences := strings.Split(text, ".")
 	var result []string
 	var current string
+	const maxSegmentLen = 500
+
 	for _, s := range sentences {
 		s = strings.TrimSpace(s)
 		if s == "" {
@@ -360,7 +367,7 @@ func splitTextIntoSegments(text string) []string {
 			current += ". "
 		}
 		current += s
-		if len(current) > 200 {
+		if len(current) > maxSegmentLen {
 			result = append(result, current+".")
 			current = ""
 		}
@@ -369,4 +376,11 @@ func splitTextIntoSegments(text string) []string {
 		result = append(result, current+".")
 	}
 	return result
+}
+
+func truncateString(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
 }

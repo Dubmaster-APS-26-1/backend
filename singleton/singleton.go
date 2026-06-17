@@ -20,7 +20,7 @@ var (
 	VideoService = &video.VideoService{}
 	Downloader   input.Downloader = &input.YouTube{}
 	MediaHandler media.MediaHandler = &media.FfmpegWrapper{}
-	Transcripter transcript.Transcripter = initTranscript()
+	Transcripter transcript.Transcripter
 	Translator   translator.Translator = &translator.MarianMT{}
 	TTS          tts.Speecher = tts.NewCoquiTTS()
 	Subtitler    caption.Subtitler = caption.NewStablets()
@@ -28,7 +28,7 @@ var (
 	Queue        *pipeline.Queue
 )
 
-func initTranscript() transcript.Transcripter {
+func InitTranscript() transcript.Transcripter {
 	if config.GroqApiKey != "" {
 		log.Println("[SINGLETON] Using Groq Whisper for transcription")
 		return transcript.NewGroqWhisper()
