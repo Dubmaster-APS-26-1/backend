@@ -36,8 +36,6 @@ func SendVideo(c fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "url is required"})
 		}
 		sourceUrl = url
-		downloadedPath := singleton.Downloader.Download(url)
-		originalPath = downloadedPath
 	case "FILE":
 		fileHeader, err := c.FormFile("file")
 		if err != nil {
@@ -53,6 +51,15 @@ func SendVideo(c fiber.Ctx) error {
 	if err != nil {
 		slog.Error("[VIDEO] Error creating video record", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if uploadType == "YOUTUBE" {
+		uniquePath := filepath.Join(videosPath, v.ID+"_original.mp4")
+		downloadedPath := singleton.Downloader.Download(sourceUrl, uniquePath)
+		if err := singleton.VideoService.UpdateOriginalPath(v.ID, downloadedPath); err != nil {
+			slog.Error("[VIDEO] Error updating original path", "video_id", v.ID, "error", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
 	}
 
 	singleton.Queue.Enqueue(pipeline.Job{

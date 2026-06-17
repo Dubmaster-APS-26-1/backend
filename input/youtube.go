@@ -14,11 +14,10 @@ func New() *YouTube {
 	return &YouTube{}
 }
 
-func (y *YouTube) Download(url string) string {
-	slog.Info("[YOUTUBE] Downloading video with 'yt-dlp'", "url", url)
+func (y *YouTube) Download(url, outputPath string) string {
+	slog.Info("[YOUTUBE] Downloading video with 'yt-dlp'", "url", url, "output", outputPath)
 
-	path, _ := filepath.Abs("pipe/")
-	outputPath := path + "/video.mp4"
+	os.MkdirAll(filepath.Dir(outputPath), 0755)
 
 	cmd := exec.Command("yt-dlp", "-f", "best", "-o", outputPath, url)
 
@@ -32,6 +31,6 @@ func (y *YouTube) Download(url string) string {
 		panic(err)
 	}
 
-	slog.Info("[YOUTUBE] Download finished", "url", url)
+	slog.Info("[YOUTUBE] Download finished", "url", url, "output", outputPath)
 	return outputPath
 }

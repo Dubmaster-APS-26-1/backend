@@ -1,5 +1,5 @@
 package input
 
 type Downloader interface {
-	Download(url string) string
+	Download(url, outputPath string) string
 }

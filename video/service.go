@@ -19,6 +19,7 @@ var (
 	updateTranscriptionSql           = `UPDATE "video" SET transcription = $1, status = $2, updated_at = $3 WHERE id = $4`
 	updateTranslatedTranscriptionSql = `UPDATE "video" SET translated_transcription = $1, status = $2, updated_at = $3 WHERE id = $4`
 	updateDubbedPathSql              = `UPDATE "video" SET dubbed_path = $1, status = $2, updated_at = $3 WHERE id = $4`
+	updateOriginalPathSql            = `UPDATE "video" SET original_path = $1, updated_at = $2 WHERE id = $3`
 )
 
 func (vs *VideoService) Create(title, sourceType, sourceUrl, originalPath, userSsoId string) (*Video, error) {
@@ -105,5 +106,10 @@ func (vs *VideoService) UpdateTranslatedTranscription(id, translated string) err
 
 func (vs *VideoService) UpdateDubbedPath(id, dubbedPath string) error {
 	_, err := database.Pool.Exec(context.Background(), updateDubbedPathSql, dubbedPath, "finished", time.Now(), id)
+	return err
+}
+
+func (vs *VideoService) UpdateOriginalPath(id, originalPath string) error {
+	_, err := database.Pool.Exec(context.Background(), updateOriginalPathSql, originalPath, time.Now(), id)
 	return err
 }
