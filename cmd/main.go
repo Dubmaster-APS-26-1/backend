@@ -10,15 +10,19 @@ import (
 	"dubmaster/middleware"
 	"dubmaster/pipeline"
 	"dubmaster/singleton"
+	"dubmaster/transcript"
 	"dubmaster/ws"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 )
 
-func main() {
+func init() {
 	config.LoadEnvironment()
+	singleton.Transcripter = transcript.NewTranscripter()
+}
 
+func main() {
 	err := database.ConnectDatabase()
 	if err != nil {
 		log.Fatal(err)
@@ -35,7 +39,9 @@ func main() {
 	)
 	singleton.Queue.Start(3)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 500 * 1024 * 1024,
+	})
 
 	app.Use(cors.New())
 
